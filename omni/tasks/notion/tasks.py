@@ -1,5 +1,6 @@
 import os
 from datetime import datetime
+from time import sleep
 
 from airflow.decorators import task
 from notion_client import Client
@@ -43,6 +44,10 @@ def _create_page(database_id, properties, icon_emoji=None, cover_url=None):
             "external": {"url": cover_url},
         }
     notion.pages.create(**request_object)
+
+    # Notion's API rate limitation is around 3 requests per second. This should slow
+    # down the page creations so that we don't exceed the limits.
+    sleep(1)
 
 
 def _map_value(value, property_schema):
