@@ -3,11 +3,19 @@ from datetime import datetime
 from time import sleep
 
 from airflow.decorators import task
+from airflow.models.taskinstance import TaskInstance
 from notion_client import Client
 
 
 @task.python
-def create_pages(ti, params):
+def create_pages(ti: TaskInstance, params: dict) -> None:
+    """Create pages in Notion based on values in XCom.
+
+    Args:
+        ti (TaskInstance): Airflow Task Instance
+        params (dict): dict containing at least a "database_id" and "source_task_id"
+            keys
+    """
     database_id = params["database_id"]
 
     properties_list = ti.xcom_pull(task_ids=params["source_task_id"])
@@ -26,9 +34,9 @@ def _create_page(database_id, properties, icon_emoji=None, cover_url=None):
     request_object["parent"] = {"type": "database_id", "database_id": database_id}
 
     mapped_properties = {}
-    for property, value in properties.items():
-        mapped_properties[property] = _map_value(
-            value, database["properties"][property]
+    for property_name, value in properties.items():
+        mapped_properties[property_name] = _map_value(
+            value, database["properties"][property_name]
         )
     request_object["properties"] = mapped_properties
 

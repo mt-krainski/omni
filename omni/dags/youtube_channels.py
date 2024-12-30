@@ -2,7 +2,6 @@ import datetime
 
 import pendulum
 from airflow.decorators import dag, task
-from airflow.operators.python import PythonOperator
 
 from omni.tasks.notion.tasks import create_pages
 from omni.tasks.youtube.tasks import get_latest_videos_by_playlist_id
@@ -15,7 +14,8 @@ from omni.tasks.youtube.tasks import get_latest_videos_by_playlist_id
     catchup=False,
     dagrun_timeout=datetime.timedelta(minutes=60),
 )
-def CheckYoutubeChannels():
+def check_youtube_channels_dag():
+    """DAG to check for new YouTube videos on selected channels."""
 
     @task.python
     def remap_values(ti, params):
@@ -49,4 +49,4 @@ def CheckYoutubeChannels():
     )
 
 
-CheckYoutubeChannels()
+check_youtube_channels_dag()

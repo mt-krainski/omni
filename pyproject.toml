@@ -40,7 +40,7 @@ build-backend = "poetry.core.masonry.api"
 max-line-length = 88
 dictionaries = ["en_US", "python", "technical"]
 builtins-ignorelist = ["id"]
-ignore = ["D104", "D100", "D101", "D106"]
+ignore = ["D104", "D100", "D101", "D106", "W503"]
 per-file-ignores = """
     tests/**: S101
 """
@@ -60,7 +60,7 @@ envfile = ".env"
 [tool.poe.tasks]
 configure = "./scripts/configure.sh"
 update = "./scripts/update.sh"
-lint = "flake8 ."
+lint = "flake8 tests scripts omni"
 test = 'coverage run -m pytest --showlocals'
 hooks-run = "pre-commit run --all-files"
 hooks-update = "pre-commit auto-update"
