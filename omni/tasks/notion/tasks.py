@@ -24,6 +24,27 @@ def create_pages(ti: TaskInstance, params: dict) -> None:
         _create_page(database_id, properties)
 
 
+def get_database_contents(database_id, filter_query, sort_query, page_size=100):
+    notion = Client(auth=os.environ["NOTION_API_KEY"])
+    notion_database_contents = notion.databases.query(
+        database_id=database_id,
+        filter=filter_query,
+        sorts=sort_query,
+        page_size=page_size,
+    )
+
+    results = []
+    for item in notion_database_contents["results"]:
+        results.append(
+            {
+                prop: _convert_value_to_internal_format(value)
+                for prop, value in item["properties"].items()
+            }
+        )
+
+    return results
+
+
 def _create_page(database_id, properties, icon_emoji=None, cover_url=None):
     notion = Client(auth=os.environ["NOTION_API_KEY"])
 
@@ -35,7 +56,7 @@ def _create_page(database_id, properties, icon_emoji=None, cover_url=None):
 
     mapped_properties = {}
     for property_name, value in properties.items():
-        mapped_properties[property_name] = _map_value(
+        mapped_properties[property_name] = _convert_value_to_notion_format(
             value, database["properties"][property_name]
         )
     request_object["properties"] = mapped_properties
@@ -55,18 +76,18 @@ def _create_page(database_id, properties, icon_emoji=None, cover_url=None):
     sleep(1)
 
 
-def _map_value(value, property_schema):
+def _convert_value_to_notion_format(value, property_schema):
     property_map = {
-        "title": _map_title,
-        "rich_text": _map_rich_text,
-        "date": _map_date,
-        "status": _map_status,
-        "url": _map_url,
+        "title": _convert_title_to_notion_format,
+        "rich_text": _convert_rich_text_to_notion_format,
+        "date": _convert_date_to_notion_format,
+        "status": _convert_status_to_notion_format,
+        "url": _convert_url_to_notion_format,
     }
     return property_map[property_schema["type"]](value, property_schema)
 
 
-def _map_title(value, *args, **kwargs):
+def _convert_title_to_notion_format(value, *args, **kwargs):
     return {
         "id": "title",
         "type": "title",
@@ -74,7 +95,7 @@ def _map_title(value, *args, **kwargs):
     }
 
 
-def _map_rich_text(value, *args, **kwargs):
+def _convert_rich_text_to_notion_format(value, *args, **kwargs):
     return {
         "rich_text": [
             {
@@ -85,11 +106,11 @@ def _map_rich_text(value, *args, **kwargs):
     }
 
 
-def _map_date(value: datetime, *args, **kwargs):
+def _convert_date_to_notion_format(value: datetime, *args, **kwargs):
     return {"type": "date", "date": {"start": value.isoformat()}}
 
 
-def _map_status(value, property_schema, *args, **kwargs):
+def _convert_status_to_notion_format(value, property_schema, *args, **kwargs):
     for option in property_schema["status"]["options"]:
         if option["name"] == value:
             break
@@ -100,5 +121,38 @@ def _map_status(value, property_schema, *args, **kwargs):
     return {"status": {"name": value}}
 
 
-def _map_url(value, *args, **kwargs):
+def _convert_url_to_notion_format(value, *args, **kwargs):
     return {"url": value}
+
+
+def _convert_value_to_internal_format(value):
+    property_map = {
+        "title": _convert_title_to_internal_format,
+        "rich_text": _convert_rich_text_to_internal_format,
+        "date": _convert_date_to_internal_format,
+        "status": _convert_status_to_internal_format,
+        "url": _convert_url_to_internal_format,
+    }
+    return property_map[value["type"]](value)
+
+
+def _convert_title_to_internal_format(value, *args, **kwargs):
+    return "".join(t["plain_text"] for t in value["title"])
+
+
+def _convert_rich_text_to_internal_format(value, *args, **kwargs):
+    return "".join(t["plain_text"] for t in value["rich_text"])
+
+
+def _convert_date_to_internal_format(value, *args, **kwargs):
+    # TODO: This doesn't take into account the possible end date.
+    # For now I decided to keep this simple.
+    return datetime.fromisoformat(value["date"]["start"])
+
+
+def _convert_status_to_internal_format(value, *args, **kwargs):
+    return value["status"]["name"]
+
+
+def _convert_url_to_internal_format(value, *args, **kwargs):
+    return value["url"]
