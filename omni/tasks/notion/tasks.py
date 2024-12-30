@@ -1,6 +1,7 @@
 import os
 from datetime import datetime
 from time import sleep
+from typing import List, Optional
 
 from airflow.decorators import task
 from airflow.models.taskinstance import TaskInstance
@@ -24,7 +25,23 @@ def create_pages(ti: TaskInstance, params: dict) -> None:
         _create_page(database_id, properties)
 
 
-def get_database_contents(database_id, filter_query, sort_query, page_size=100):
+def get_database_contents(
+    database_id: str,
+    filter_query: dict,
+    sort_query: List[dict],
+    page_size: Optional[int] = 100,
+) -> dict:
+    """Pull the contents of the database, based on provided filters.
+
+    Args:
+        database_id (str): ID of the database
+        filter_query (dict): Notion API filter
+        sort_query (dict): Notion API sorts
+        page_size (int, optional): How many results to return. Max 100. Defaults to 100.
+
+    Returns:
+        dict: Pages in the database, formatted in the internal format
+    """
     notion = Client(auth=os.environ["NOTION_API_KEY"])
     notion_database_contents = notion.databases.query(
         database_id=database_id,
