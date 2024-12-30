@@ -12,9 +12,6 @@ def create_pages(ti, params):
 
     properties_list = ti.xcom_pull(task_ids=params["source_task_id"])
 
-    # params["properties"] is a list of objects, where each item is a collection of
-    # properties. The naming is a bit unfortunate but I don't have a better idea right
-    # now.
     for properties in properties_list:
         _create_page(database_id, properties)
 
