@@ -19,47 +19,10 @@ def create_pages(ti: TaskInstance, params: dict) -> None:
     """
     database_id = params["database_id"]
 
-    properties_list = ti.xcom_pull(task_ids=params["source_task_id"])
+    entries_to_be_created = ti.xcom_pull(task_ids=params["source_task_id"])
 
-    for properties in properties_list:
-        _create_page(database_id, properties)
-
-
-def get_database_contents(
-    database_id: str,
-    filter_query: dict,
-    sort_query: List[dict],
-    page_size: Optional[int] = 100,
-) -> dict:
-    """Pull the contents of the database, based on provided filters.
-
-    Args:
-        database_id (str): ID of the database
-        filter_query (dict): Notion API filter
-        sort_query (dict): Notion API sorts
-        page_size (int, optional): How many results to return. Max 100. Defaults to 100.
-
-    Returns:
-        dict: Pages in the database, formatted in the internal format
-    """
-    notion = Client(auth=os.environ["NOTION_API_KEY"])
-    notion_database_contents = notion.databases.query(
-        database_id=database_id,
-        filter=filter_query,
-        sorts=sort_query,
-        page_size=page_size,
-    )
-
-    results = []
-    for item in notion_database_contents["results"]:
-        results.append(
-            {
-                prop: _convert_value_to_internal_format(value)
-                for prop, value in item["properties"].items()
-            }
-        )
-
-    return results
+    for entry in entries_to_be_created:
+        _create_page(database_id, **entry)
 
 
 def _create_page(database_id, properties, icon_emoji=None, cover_url=None):
@@ -142,6 +105,43 @@ def _convert_url_to_notion_format(value, *args, **kwargs):
     return {"url": value}
 
 
+def get_database_contents(
+    database_id: str,
+    filter_query: dict,
+    sort_query: List[dict],
+    page_size: Optional[int] = 100,
+) -> dict:
+    """Pull the contents of the database, based on provided filters.
+
+    Args:
+        database_id (str): ID of the database
+        filter_query (dict): Notion API filter
+        sort_query (dict): Notion API sorts
+        page_size (int, optional): How many results to return. Max 100. Defaults to 100.
+
+    Returns:
+        dict: Pages in the database, formatted in the internal format
+    """
+    notion = Client(auth=os.environ["NOTION_API_KEY"])
+    notion_database_contents = notion.databases.query(
+        database_id=database_id,
+        filter=filter_query,
+        sorts=sort_query,
+        page_size=page_size,
+    )
+
+    results = []
+    for item in notion_database_contents["results"]:
+        results.append(
+            {
+                prop: _convert_value_to_internal_format(value)
+                for prop, value in item["properties"].items()
+            }
+        )
+
+    return results
+
+
 def _convert_value_to_internal_format(value):
     property_map = {
         "title": _convert_title_to_internal_format,
@@ -149,6 +149,7 @@ def _convert_value_to_internal_format(value):
         "date": _convert_date_to_internal_format,
         "status": _convert_status_to_internal_format,
         "url": _convert_url_to_internal_format,
+        "button": _convert_button_to_internal_format,
     }
     return property_map[value["type"]](value)
 
@@ -173,3 +174,7 @@ def _convert_status_to_internal_format(value, *args, **kwargs):
 
 def _convert_url_to_internal_format(value, *args, **kwargs):
     return value["url"]
+
+
+def _convert_button_to_internal_format(value, *args, **kwargs):
+    return "button"

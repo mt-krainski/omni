@@ -23,8 +23,20 @@ CREATORS = [
         "playlist_id": "UUBJycsmduvYEL83R_U4JriQ",
     },
     {
-        "creator": "Kurzgesagt - In a Nutshell",
+        "creator": "Kurzgesagt – In a Nutshell",
         "playlist_id": "UUsXVk37bltHxD1rDPwtNM8Q",
+    },
+    {
+        "creator": "Steve Mould",
+        "playlist_id": "UUEIwxahdLz7bap-VDs9h35A",
+    },
+    {
+        "creator": "Real Engineering",
+        "playlist_id": "UUR1IuLEqb6UEA_zQ81kwXfg",
+    },
+    {
+        "creator": "3Blue1Brown",
+        "playlist_id": "UUYO_jab_esuFRV4b17AJtAw",
     },
 ]
 WATCHLIST_DATABASE_ID = "16b33426253f8091b73afb9760beaedb"
@@ -47,13 +59,17 @@ def check_youtube_channels_dag():
 
         return [
             {
-                "Name": item["title"],
-                "Video URL": item["video_url"],
-                "Creator": item["creator"],
-                "Upload Date": datetime.datetime.fromisoformat(
-                    item["upload_date"]
-                ).date(),
-                "Video ID": item["video_id"],
+                "properties": {
+                    "Name": item["title"],
+                    "Video URL": item["video_url"],
+                    "Creator": item["creator"],
+                    "Upload Date": datetime.datetime.fromisoformat(
+                        item["upload_date"]
+                    ).date(),
+                    "Video ID": item["video_id"],
+                },
+                "cover_url": item["thumbnail"],
+                "icon_emoji": None,
             }
             for item in data
         ]
@@ -81,8 +97,9 @@ def check_youtube_channels_dag():
 
         new_videos = []
         for video in latest_videos_by_creator:
-            if video["Video ID"] == last_received_video["Video ID"]:
+            if video["properties"]["Video ID"] == last_received_video["Video ID"]:
                 break
+            new_videos.append(video)
 
         return new_videos
 

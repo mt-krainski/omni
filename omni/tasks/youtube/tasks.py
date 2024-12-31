@@ -21,10 +21,6 @@ def get_latest_videos_by_playlist_id(params: dict) -> List[dict]:
     Returns:
         List[dict]: list of dicts, each item representing a video
     """
-    logger.info("Test")
-    logger.info(params)
-    logger.info(f'{os.environ["YOUTUBE_API_KEY"]=}')
-
     url_base = "https://www.googleapis.com/youtube/v3/playlistItems"
     query_params = {
         "part": "snippet,contentDetails",
@@ -53,7 +49,7 @@ def get_latest_videos_by_playlist_id(params: dict) -> List[dict]:
                 ),
                 "upload_date": item["snippet"]["publishedAt"],
                 "video_id": item["contentDetails"]["videoId"],
-                "thumbnail": item["snippet"]["thumbnails"]["high"],
+                "thumbnail": item["snippet"]["thumbnails"]["high"]["url"],
             }
         )
 
