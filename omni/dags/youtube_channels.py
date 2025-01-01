@@ -38,6 +38,10 @@ CREATORS = [
         "creator": "3Blue1Brown",
         "playlist_id": "UUYO_jab_esuFRV4b17AJtAw",
     },
+    {
+        "creator": "JerryRigEverything",
+        "playlist_id": "UUWFKCr40YwOZQx8FHU_ZqqQ",
+    },
 ]
 WATCHLIST_DATABASE_ID = "16b33426253f8091b73afb9760beaedb"
 
