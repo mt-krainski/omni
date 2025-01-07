@@ -1,5 +1,5 @@
 import os
-from datetime import datetime, timezone
+from datetime import datetime
 
 import requests
 from airflow.decorators import task
@@ -13,13 +13,18 @@ LATEST_ARTICLES_QUERY_PARAMS = {
 
 
 @task.python
-def get_latest_articles(ti: TaskInstance) -> None:
-    """Load latest articles from the NYT API
+def get_latest_articles(ti: TaskInstance) -> dict:
+    """Load latest articles from the NYT API.
 
     Args:
         ti (TaskInstance): Airflow Task Instance
+
+    Returns:
+        dict: dictionary of results
     """
-    response = requests.get(LATEST_ARTICLES_URL, params=LATEST_ARTICLES_QUERY_PARAMS)
+    response = requests.get(
+        LATEST_ARTICLES_URL, params=LATEST_ARTICLES_QUERY_PARAMS, timeout=60
+    )
     response.raise_for_status()
 
     print(f"Execution date: {ti.execution_date}")
