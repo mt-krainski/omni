@@ -1,9 +1,14 @@
 import datetime
+import os
 
 import pendulum
 from airflow.decorators import dag
 
+from omni.tasks.chatgpt.tasks import filter_with_chatgpt
 from omni.tasks.new_york_times.tasks import get_latest_articles
+from omni.tasks.sendgrid.tasks import send_email
+
+PROMPT = os.environ["NEWS_FILTER_PROMPT"]
 
 
 @dag(
@@ -15,7 +20,20 @@ from omni.tasks.new_york_times.tasks import get_latest_articles
 )
 def check_news_dag():
     """DAG to check for relevant news."""
-    get_latest_articles()
+    (
+        get_latest_articles()
+        >> filter_with_chatgpt(
+            params={
+                "source_task_id": "get_latest_articles",
+                "prompt": PROMPT,
+            }
+        )
+        >> send_email(
+            params={
+                "source_task_id": "filter_with_chatgpt",
+            }
+        )
+    )
 
 
 check_news_dag()
