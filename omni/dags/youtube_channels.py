@@ -1,4 +1,5 @@
 import datetime
+import os
 
 import pendulum
 from airflow.decorators import dag, task
@@ -43,12 +44,12 @@ CREATORS = [
         "playlist_id": "UUWFKCr40YwOZQx8FHU_ZqqQ",
     },
 ]
-WATCHLIST_DATABASE_ID = "16b33426253f8091b73afb9760beaedb"
+WATCHLIST_DATABASE_ID = os.environ["NOTION_WATCHLIST_DB_ID"]
 
 
 @dag(
     dag_id="check_youtube_channels",
-    schedule_interval="0 0 * * *",
+    schedule_interval="@daily",
     start_date=pendulum.datetime(2024, 12, 28, tz="UTC"),
     catchup=False,
     dagrun_timeout=datetime.timedelta(minutes=60),
