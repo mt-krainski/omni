@@ -1,5 +1,5 @@
 import os
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import List
 
 import requests
@@ -41,7 +41,7 @@ def get_latest_articles(ti: TaskInstance) -> List[dict]:
         if (
             pub_date := (
                 datetime.fromisoformat(article["published_date"])
-                .astimezone(datetime.timezone.utc)
+                .astimezone(timezone.utc)
                 .date()
             )
         ) != ti.execution_date.date():
@@ -62,5 +62,7 @@ def get_latest_articles(ti: TaskInstance) -> List[dict]:
                 "thumbnail": thumbnail,
             }
         )
+
+    print(f"Found a total of {len(filtered_articles)} articles")
 
     return filtered_articles

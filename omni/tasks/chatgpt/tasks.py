@@ -11,7 +11,9 @@ def filter_with_chatgpt(ti: TaskInstance, params: dict) -> List[dict]:
     data_list = ti.xcom_pull(task_ids=params["source_task_id"])
     prompt = params["prompt"]
     result_list = []
-    for item in data_list:
+    number_of_items = len(data_list)
+    for i, item in enumerate(data_list):
+        print(f"Processing item {i + 1} / {number_of_items}")
         response = client.chat.completions.create(
             model="gpt-4o-mini",
             messages=[
