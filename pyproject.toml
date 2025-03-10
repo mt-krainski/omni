@@ -32,7 +32,7 @@ flake8-black = "^0.3.6"
 isort = "^5.13.2"
 coverage = "^7.6.9"
 pre-commit = "^4.0.1"
-ipython = "^8.31.0"
+ipython = "^9.0.2"
 
 [build-system]
 requires = ["poetry-core"]
